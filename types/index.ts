@@ -1,5 +1,5 @@
 export type ContentStatus = 'PENDING' | 'APPROVED' | 'POSTED' | 'REJECTED'
-export type Platform = 'X' | 'LINKEDIN'
+export type Platform = 'X' | 'LINKEDIN' | 'TIKTOK' | 'MEDIUM' | 'INSTAGRAM' | 'YOUTUBE' | 'WHATSAPP' | 'REDDIT'
 export type ContentType = 'SHORT_POST' | 'LONG_POST' | 'ARTICLE' | 'THREAD' | 'IMAGE_CAPTION'
 export type Tone = 'PROFESSIONAL' | 'CASUAL' | 'WITTY'
 

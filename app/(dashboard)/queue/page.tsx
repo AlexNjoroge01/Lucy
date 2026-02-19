@@ -28,6 +28,12 @@ const contentTypes: { value: ContentType; label: string }[] = [
 const platforms: { value: Platform; label: string }[] = [
   { value: 'X', label: 'X (Twitter)' },
   { value: 'LINKEDIN', label: 'LinkedIn' },
+  { value: 'TIKTOK', label: 'TikTok' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'INSTAGRAM', label: 'Instagram' },
+  { value: 'YOUTUBE', label: 'YouTube' },
+  { value: 'WHATSAPP', label: 'WhatsApp' },
+  { value: 'REDDIT', label: 'Reddit' },
 ]
 
 export default function QueuePage() {

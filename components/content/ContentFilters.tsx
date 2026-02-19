@@ -23,6 +23,12 @@ const platformOptions: { value: Platform | 'ALL'; label: string }[] = [
   { value: 'ALL', label: 'All Platforms' },
   { value: 'X', label: 'X (Twitter)' },
   { value: 'LINKEDIN', label: 'LinkedIn' },
+  { value: 'TIKTOK', label: 'TikTok' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'INSTAGRAM', label: 'Instagram' },
+  { value: 'YOUTUBE', label: 'YouTube' },
+  { value: 'WHATSAPP', label: 'WhatsApp' },
+  { value: 'REDDIT', label: 'Reddit' },
 ]
 
 const typeOptions: { value: ContentType | 'ALL'; label: string }[] = [

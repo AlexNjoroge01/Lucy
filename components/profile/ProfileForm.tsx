@@ -162,29 +162,45 @@ export function ProfileForm() {
 
       <div className="space-y-2">
         <Label>Platforms</Label>
-        <div className="flex gap-4">
-          {(['X', 'LINKEDIN'] as Platform[]).map((platform) => (
+        <p className="text-sm text-muted-foreground mb-2">
+          Select the platforms you want to create content for
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {([
+            { value: 'X', label: 'X (Twitter)' },
+            { value: 'LINKEDIN', label: 'LinkedIn' },
+            { value: 'TIKTOK', label: 'TikTok' },
+            { value: 'MEDIUM', label: 'Medium' },
+            { value: 'INSTAGRAM', label: 'Instagram' },
+            { value: 'YOUTUBE', label: 'YouTube' },
+            { value: 'WHATSAPP', label: 'WhatsApp' },
+            { value: 'REDDIT', label: 'Reddit' },
+          ] as { value: Platform; label: string }[]).map((platform) => (
             <label
-              key={platform}
-              className="flex items-center gap-2 cursor-pointer"
+              key={platform.value}
+              className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                watchedPlatforms?.includes(platform.value)
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/50'
+              }`}
             >
               <input
                 type="checkbox"
-                checked={watchedPlatforms?.includes(platform)}
+                checked={watchedPlatforms?.includes(platform.value)}
                 onChange={(e) => {
                   const current = watchedPlatforms || []
                   if (e.target.checked) {
-                    setValue('platforms', [...current, platform])
+                    setValue('platforms', [...current, platform.value])
                   } else {
                     setValue(
                       'platforms',
-                      current.filter((p) => p !== platform)
+                      current.filter((p) => p !== platform.value)
                     )
                   }
                 }}
                 className="h-4 w-4"
               />
-              <span>{platform === 'X' ? 'X (Twitter)' : 'LinkedIn'}</span>
+              <span className="text-sm">{platform.label}</span>
             </label>
           ))}
         </div>

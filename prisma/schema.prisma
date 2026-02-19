@@ -117,6 +117,12 @@ enum Tone {
 enum Platform {
   X
   LINKEDIN
+  TIKTOK
+  MEDIUM
+  INSTAGRAM
+  YOUTUBE
+  WHATSAPP
+  REDDIT
 }
 
 enum ContentType {
