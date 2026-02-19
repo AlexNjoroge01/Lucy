@@ -28,6 +28,12 @@ const platformContexts: Record<Platform, string> = {
   X: 'This is for X (Twitter). Keep it concise, punchy, and engaging. Character limit: 280 for single posts.',
   LINKEDIN:
     'This is for LinkedIn. Professional but personable. Longer form content works well. Engage with professional insights.',
+  TIKTOK: 'This is for TikTok. Short, engaging, and trend-aware content.',
+  MEDIUM: 'This is for Medium. Long-form, in-depth content with clear structure.',
+  INSTAGRAM: 'This is for Instagram. Visual-first with engaging captions.',
+  YOUTUBE: 'This is for YouTube. Video-focused with compelling titles and descriptions.',
+  WHATSAPP: 'This is for WhatsApp status. Short, personal, and direct.',
+  REDDIT: 'This is for Reddit. Authentic, community-focused content.',
 }
 
 export function buildPrompt(
@@ -38,7 +44,7 @@ export function buildPrompt(
 ): PromptResult {
   const toneInstruction = toneInstructions[profile.tone]
   const contentInstruction = contentTypeInstructions[contentType]
-  const platformContext = platformContexts[platform]
+  const platformContext = platformContexts[platform] || 'Create engaging content for this platform.'
 
   const systemMessage = `You are a professional content writer creating marketing content for a software engineer.
 
@@ -52,7 +58,9 @@ PLATFORM CONTEXT:
 ${platformContext}
 
 OUTPUT RULE:
-Return only the content itself. No preamble, no explanation, no quotes around the output. Just the raw content ready to post.`
+Return only the content itself. No preamble, no explanation, no quotes around the output. Just the raw content ready to post.
+
+IMPORTANT: After the main content, include an image concept suggestion on a new line starting with "IMAGE CONCEPT:". This should be a brief description of what kind of image would work well with this content. For example: "IMAGE CONCEPT: A screenshot of a code editor showing a React component with syntax highlighting"`
 
   let userMessage = `${contentInstruction}
 

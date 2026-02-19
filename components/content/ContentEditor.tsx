@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { useContentItem, useUpdateContent, useGenerateContent } from '@/hooks/useContent'
 import { useProjects } from '@/hooks/useProjects'
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { PlatformBadge } from '@/components/shared/PlatformBadge'
 import { toast } from 'sonner'
-import { Loader2, RefreshCw, Save, ArrowLeft } from 'lucide-react'
+import { Loader2, RefreshCw, Save, ArrowLeft, Upload, Image as ImageIcon, X } from 'lucide-react'
 import Link from 'next/link'
 import type { ContentType, Platform } from '@/types'
 
@@ -35,6 +35,8 @@ export function ContentEditor({ id }: ContentEditorProps) {
   const { data: projects } = useProjects()
   const updateContent = useUpdateContent()
   const generateContent = useGenerateContent()
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -79,6 +81,64 @@ export function ContentEditor({ id }: ContentEditorProps) {
       toast.success('Content regenerated')
     } catch {
       toast.error('Failed to regenerate content')
+    }
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const { url, publicId } = await response.json()
+
+      // Update content with image
+      await updateContent.mutateAsync({
+        id,
+        data: {
+          imageUrl: url,
+          imagePublicId: publicId,
+        },
+      })
+
+      toast.success('Image uploaded successfully')
+    } catch (error) {
+      toast.error('Failed to upload image')
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveImage = async () => {
+    if (!item?.imagePublicId) return
+
+    try {
+      // Call API to remove image
+      await updateContent.mutateAsync({
+        id,
+        data: {
+          imageUrl: null,
+          imagePublicId: null,
+        },
+      })
+      toast.success('Image removed')
+    } catch {
+      toast.error('Failed to remove image')
     }
   }
 
@@ -151,6 +211,70 @@ export function ContentEditor({ id }: ContentEditorProps) {
             className="resize-none"
             {...register('body')}
           />
+        </div>
+
+        {/* Image Concept Suggestion */}
+        {item.imageConcept && (
+          <div className="p-4 bg-muted/50 rounded-lg border border-dashed">
+            <div className="flex items-start gap-3">
+              <ImageIcon className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-sm font-medium mb-1">Suggested Image Concept</p>
+                <p className="text-sm text-muted-foreground">{item.imageConcept}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Image Upload Section */}
+        <div className="space-y-3">
+          <Label>Image</Label>
+          
+          {item.imageUrl ? (
+            <div className="relative inline-block">
+              <img
+                src={item.imageUrl}
+                alt="Content image"
+                className="max-w-full h-auto rounded-lg border max-h-64 object-cover"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                className="absolute top-2 right-2"
+                onClick={handleRemoveImage}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="image-upload"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                Upload Image
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Upload your own image based on the concept suggestion above
+              </span>
+            </div>
+          )}
         </div>
 
         {item.project && (

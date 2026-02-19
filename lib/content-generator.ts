@@ -10,6 +10,19 @@ interface GenerateContentOptions {
   projectId?: string
 }
 
+// Helper function to parse image concept from generated text
+function parseImageConcept(text: string): { body: string; imageConcept: string | null } {
+  const imageConceptMatch = text.match(/IMAGE CONCEPT:\s*(.+?)(?:\n|$)/i)
+  
+  if (imageConceptMatch) {
+    const imageConcept = imageConceptMatch[1].trim()
+    const body = text.replace(imageConceptMatch[0], '').trim()
+    return { body, imageConcept }
+  }
+  
+  return { body: text.trim(), imageConcept: null }
+}
+
 export async function generateContent(
   userId: string,
   options: GenerateContentOptions
@@ -71,7 +84,8 @@ export async function generateContent(
     focusTopics: profile.focusTopics,
     avoidTopics: profile.avoidTopics,
     postsPerDay: profile.postsPerDay,
-    generationHour: profile.generationHour,
+    generationTime: profile.generationTime,
+    timezone: profile.timezone,
   }
 
   const prompt = buildPrompt(
@@ -91,8 +105,8 @@ export async function generateContent(
     ],
   })
 
-  // 6. Clean the text
-  const cleanedText = text.trim().replace(/^["']|["']$/g, '')
+  // 6. Parse image concept and clean the text
+  const { body, imageConcept } = parseImageConcept(text)
 
   // 7. Create ContentItem in DB
   const contentItem = await prisma.contentItem.create({
@@ -101,7 +115,8 @@ export async function generateContent(
       projectId: selectedProject?.id || null,
       type: options.contentType,
       platform: options.platform,
-      body: cleanedText,
+      body,
+      imageConcept,
       status: 'PENDING',
     },
     include: {
@@ -116,6 +131,7 @@ export async function generateContent(
     type: contentItem.type as ContentType,
     platform: contentItem.platform as Platform,
     body: contentItem.body,
+    imageConcept: contentItem.imageConcept ?? undefined,
     status: contentItem.status as ContentStatus,
     imageUrl: contentItem.imageUrl ?? undefined,
     imagePublicId: contentItem.imagePublicId ?? undefined,

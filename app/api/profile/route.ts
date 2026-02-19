@@ -29,7 +29,8 @@ export async function GET() {
       focusTopics: profile.focusTopics,
       avoidTopics: profile.avoidTopics,
       postsPerDay: profile.postsPerDay,
-      generationHour: profile.generationHour,
+      generationTime: profile.generationTime,
+      timezone: profile.timezone,
     })
   } catch (error) {
     console.error('Error fetching profile:', error)
@@ -58,7 +59,8 @@ export async function PUT(request: Request) {
       focusTopics,
       avoidTopics,
       postsPerDay,
-      generationHour,
+      generationTime,
+      timezone,
     } = body
 
     const profile = await prisma.profile.upsert({
@@ -72,7 +74,8 @@ export async function PUT(request: Request) {
         focusTopics: focusTopics ?? [],
         avoidTopics: avoidTopics ?? [],
         postsPerDay: postsPerDay ?? 1,
-        generationHour: generationHour ?? 7,
+        generationTime: generationTime ?? '07:00',
+        timezone: timezone ?? 'Africa/Nairobi',
       },
       create: {
         userId: session.user.id,
@@ -84,7 +87,8 @@ export async function PUT(request: Request) {
         focusTopics: focusTopics ?? [],
         avoidTopics: avoidTopics ?? [],
         postsPerDay: postsPerDay ?? 1,
-        generationHour: generationHour ?? 7,
+        generationTime: generationTime ?? '07:00',
+        timezone: timezone ?? 'Africa/Nairobi',
       },
     })
 
@@ -99,7 +103,8 @@ export async function PUT(request: Request) {
       focusTopics: profile.focusTopics,
       avoidTopics: profile.avoidTopics,
       postsPerDay: profile.postsPerDay,
-      generationHour: profile.generationHour,
+      generationTime: profile.generationTime,
+      timezone: profile.timezone,
     })
   } catch (error) {
     console.error('Error updating profile:', error)

@@ -20,8 +20,26 @@ interface ProfileFormData {
   focusTopics: string
   avoidTopics: string
   postsPerDay: number
-  generationHour: number
+  generationTime: string
+  timezone: string
 }
+
+// Common timezones
+const commonTimezones = [
+  { value: 'Africa/Nairobi', label: 'East Africa (Nairobi) UTC+3' },
+  { value: 'Africa/Lagos', label: 'West Africa (Lagos) UTC+1' },
+  { value: 'Europe/London', label: 'London (GMT/BST)' },
+  { value: 'Europe/Paris', label: 'Central Europe (Paris) UTC+1' },
+  { value: 'America/New_York', label: 'Eastern Time (New York) UTC-5' },
+  { value: 'America/Chicago', label: 'Central Time (Chicago) UTC-6' },
+  { value: 'America/Denver', label: 'Mountain Time (Denver) UTC-7' },
+  { value: 'America/Los_Angeles', label: 'Pacific Time (Los Angeles) UTC-8' },
+  { value: 'Asia/Dubai', label: 'Dubai UTC+4' },
+  { value: 'Asia/Kolkata', label: 'India (Kolkata) UTC+5:30' },
+  { value: 'Asia/Singapore', label: 'Singapore UTC+8' },
+  { value: 'Asia/Tokyo', label: 'Tokyo UTC+9' },
+  { value: 'Australia/Sydney', label: 'Sydney UTC+10/11' },
+]
 
 export function ProfileForm() {
   const { data: profile, isLoading } = useProfile()
@@ -44,7 +62,8 @@ export function ProfileForm() {
       focusTopics: '',
       avoidTopics: '',
       postsPerDay: 1,
-      generationHour: 7,
+      generationTime: '07:00',
+      timezone: 'Africa/Nairobi',
     },
   })
 
@@ -59,7 +78,8 @@ export function ProfileForm() {
         focusTopics: profile.focusTopics?.join(', ') || '',
         avoidTopics: profile.avoidTopics?.join(', ') || '',
         postsPerDay: profile.postsPerDay || 1,
-        generationHour: profile.generationHour || 7,
+        generationTime: profile.generationTime || '07:00',
+        timezone: profile.timezone || 'Africa/Nairobi',
       })
     }
   }, [profile, reset])
@@ -84,7 +104,8 @@ export function ProfileForm() {
           .map((s) => s.trim())
           .filter(Boolean),
         postsPerDay: data.postsPerDay,
-        generationHour: data.generationHour,
+        generationTime: data.generationTime,
+        timezone: data.timezone,
       })
       toast.success('Profile updated successfully')
     } catch {
@@ -230,7 +251,7 @@ export function ProfileForm() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="postsPerDay">Posts Per Day</Label>
           <Input
@@ -242,14 +263,30 @@ export function ProfileForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="generationHour">Generation Hour (0-23)</Label>
+          <Label htmlFor="generationTime">Generation Time</Label>
           <Input
-            id="generationHour"
-            type="number"
-            min={0}
-            max={23}
-            {...register('generationHour', { valueAsNumber: true })}
+            id="generationTime"
+            type="time"
+            {...register('generationTime')}
+            className="cursor-pointer"
           />
+          <p className="text-xs text-muted-foreground">
+            e.g., 13:00 for 1:00 PM, 15:00 for 3:00 PM
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="timezone">Timezone</Label>
+          <select
+            id="timezone"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+            {...register('timezone')}
+          >
+            {commonTimezones.map((tz) => (
+              <option key={tz.value} value={tz.value}>
+                {tz.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

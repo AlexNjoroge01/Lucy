@@ -58,6 +58,7 @@ export async function GET(request: Request) {
         type: item.type,
         platform: item.platform,
         body: item.body,
+        imageConcept: item.imageConcept,
         status: item.status,
         imageUrl: item.imageUrl,
         imagePublicId: item.imagePublicId,

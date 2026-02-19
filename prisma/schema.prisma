@@ -59,7 +59,8 @@ model Profile {
   focusTopics    String[]
   avoidTopics    String[]
   postsPerDay    Int        @default(1)
-  generationHour Int        @default(7)
+  generationTime String     @default("07:00") // Specific time like "13:00" for 1:00 PM or "15:00" for 3:00 PM
+  timezone       String     @default("Africa/Nairobi")
   updatedAt      DateTime   @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -87,6 +88,7 @@ model ContentItem {
   type          ContentType
   platform      Platform
   body          String
+  imageConcept  String?       // AI-generated suggestion for what image would work well
   status        ContentStatus @default(PENDING)
   imageUrl      String?
   imagePublicId String?

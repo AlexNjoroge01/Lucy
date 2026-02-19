@@ -6,17 +6,18 @@ export type Tone = 'PROFESSIONAL' | 'CASUAL' | 'WITTY'
 export interface ContentItem {
   id: string
   userId: string
-  projectId?: string
+  projectId?: string | null
   type: ContentType
   platform: Platform
   body: string
+  imageConcept?: string | null // AI-generated suggestion for what image would work well
   status: ContentStatus
-  imageUrl?: string
-  imagePublicId?: string
+  imageUrl?: string | null
+  imagePublicId?: string | null
   generatedAt: string
-  approvedAt?: string
-  postedAt?: string
-  project?: Project
+  approvedAt?: string | null
+  postedAt?: string | null
+  project?: Project | null
 }
 
 export interface Profile {
@@ -30,7 +31,8 @@ export interface Profile {
   focusTopics: string[]
   avoidTopics: string[]
   postsPerDay: number
-  generationHour: number
+  generationTime: string // Specific time like "13:00" for 1:00 PM or "15:00" for 3:00 PM
+  timezone: string // User's timezone, e.g., "Africa/Nairobi"
 }
 
 export interface Project {
