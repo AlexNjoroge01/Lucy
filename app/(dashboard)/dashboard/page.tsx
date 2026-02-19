@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useContentList, useGenerateContent } from '@/hooks/useContent'
 import { useProfile } from '@/hooks/useProfile'
+import { useProjects } from '@/hooks/useProjects'
 import { ContentCard } from '@/components/content/ContentCard'
 import {
   Dialog,
@@ -22,6 +23,7 @@ import {
   Plus,
   Loader2,
   AlertTriangle,
+  Check,
 } from 'lucide-react'
 import type { ContentType, Platform } from '@/types'
 
@@ -40,10 +42,12 @@ const platforms: { value: Platform; label: string }[] = [
 
 export default function DashboardPage() {
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false)
-  const [selectedType, setSelectedType] = useState<ContentType>('SHORT_POST')
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>('X')
+  const [selectedTypes, setSelectedTypes] = useState<ContentType[]>(['SHORT_POST'])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['X'])
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const generateContent = useGenerateContent()
   const { data: profile } = useProfile()
+  const { data: projects } = useProjects()
 
   // Fetch stats
   const { data: allContent } = useContentList({ page: 1, limit: 100 })
@@ -94,16 +98,59 @@ export default function DashboardPage() {
     },
   ]
 
+  const toggleType = (type: ContentType) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type)
+        ? prev.filter((t) => t !== type)
+        : [...prev, type]
+    )
+  }
+
+  const togglePlatform = (platform: Platform) => {
+    setSelectedPlatforms((prev) =>
+      prev.includes(platform)
+        ? prev.filter((p) => p !== platform)
+        : [...prev, platform]
+    )
+  }
+
   const handleGenerate = async () => {
+    if (selectedTypes.length === 0) {
+      toast.error('Please select at least one content type')
+      return
+    }
+    if (selectedPlatforms.length === 0) {
+      toast.error('Please select at least one platform')
+      return
+    }
+
     try {
-      await generateContent.mutateAsync({
-        contentType: selectedType,
-        platform: selectedPlatform,
-      })
-      toast.success('Content generated successfully')
+      // Generate content for each combination of type and platform
+      const promises: Promise<void>[] = []
+
+      for (const type of selectedTypes) {
+        for (const platform of selectedPlatforms) {
+          promises.push(
+            generateContent.mutateAsync({
+              contentType: type,
+              platform: platform,
+              projectId: selectedProjectId || undefined,
+            }).then(() => {})
+          )
+        }
+      }
+
+      await Promise.all(promises)
+      
+      const totalItems = selectedTypes.length * selectedPlatforms.length
+      toast.success(`Generated ${totalItems} content item${totalItems > 1 ? 's' : ''} successfully`)
       setGenerateDialogOpen(false)
+      // Reset selections
+      setSelectedTypes(['SHORT_POST'])
+      setSelectedPlatforms(['X'])
+      setSelectedProjectId('')
     } catch {
-      toast.error('Failed to generate content')
+      toast.error('Failed to generate some content')
     }
   }
 
@@ -204,41 +251,110 @@ export default function DashboardPage() {
 
       {/* Generate Dialog */}
       <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Generate New Content</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Project Selector */}
+            {projects && projects.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Project (Optional)</label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                >
+                  <option value="">Auto-select from active projects</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Select a specific project or let Lucy choose automatically
+                </p>
+              </div>
+            )}
+
+            {/* Content Types - Multi-select */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Content Type</label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value as ContentType)}
-              >
+              <label className="text-sm font-medium">Content Types</label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Select one or more content types to generate
+              </p>
+              <div className="grid grid-cols-2 gap-2">
                 {contentTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
+                  <button
+                    key={type.value}
+                    type="button"
+                    onClick={() => toggleType(type.value)}
+                    className={`flex items-center gap-2 p-3 rounded-lg border text-sm text-left transition-colors ${
+                      selectedTypes.includes(type.value)
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                      selectedTypes.includes(type.value)
+                        ? 'border-primary bg-primary'
+                        : 'border-muted-foreground'
+                    }`}>
+                      {selectedTypes.includes(type.value) && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
                     {type.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
+            {/* Platforms - Multi-select */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Platform</label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={selectedPlatform}
-                onChange={(e) => setSelectedPlatform(e.target.value as Platform)}
-              >
+              <label className="text-sm font-medium">Platforms</label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Select one or more platforms for your content
+              </p>
+              <div className="flex flex-wrap gap-2">
                 {platforms.map((platform) => (
-                  <option key={platform.value} value={platform.value}>
+                  <button
+                    key={platform.value}
+                    type="button"
+                    onClick={() => togglePlatform(platform.value)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
+                      selectedPlatforms.includes(platform.value)
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                      selectedPlatforms.includes(platform.value)
+                        ? 'border-primary bg-primary'
+                        : 'border-muted-foreground'
+                    }`}>
+                      {selectedPlatforms.includes(platform.value) && (
+                        <Check className="w-3 h-3 text-primary-foreground" />
+                      )}
+                    </div>
                     {platform.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
+
+            {/* Summary */}
+            {selectedTypes.length > 0 && selectedPlatforms.length > 0 && (
+              <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                <span className="font-medium">Summary:</span> Will generate{' '}
+                <span className="text-primary font-semibold">
+                  {selectedTypes.length * selectedPlatforms.length} content item{selectedTypes.length * selectedPlatforms.length > 1 ? 's' : ''}
+                </span>{' '}
+                ({selectedTypes.length} type{selectedTypes.length > 1 ? 's' : ''} × {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? 's' : ''})
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 pt-4">
               <Button
@@ -249,7 +365,7 @@ export default function DashboardPage() {
               </Button>
               <Button
                 onClick={handleGenerate}
-                disabled={generateContent.isPending}
+                disabled={generateContent.isPending || selectedTypes.length === 0 || selectedPlatforms.length === 0}
               >
                 {generateContent.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
