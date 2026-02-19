@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+
+  profile       Profile?
+  projects      Project[]
+  contentItems  ContentItem[]
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  id             String     @id @default(cuid())
+  userId         String     @unique
+  bio            String
+  tagline        String
+  skills         String[]
+  tone           Tone       @default(PROFESSIONAL)
+  platforms      Platform[]
+  focusTopics    String[]
+  avoidTopics    String[]
+  postsPerDay    Int        @default(1)
+  generationHour Int        @default(7)
+  updatedAt      DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String
+  url         String?
+  techStack   String[]
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentItems ContentItem[]
+}
+
+model ContentItem {
+  id            String        @id @default(cuid())
+  userId        String
+  projectId     String?
+  type          ContentType
+  platform      Platform
+  body          String
+  status        ContentStatus @default(PENDING)
+  imageUrl      String?
+  imagePublicId String?
+  generatedAt   DateTime      @default(now())
+  approvedAt    DateTime?
+  postedAt      DateTime?
+  updatedAt     DateTime      @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id])
+}
+
+model GenerationLog {
+  id          String   @id @default(cuid())
+  triggeredBy String   // "cron" | "manual"
+  itemsCount  Int
+  success     Boolean
+  error       String?
+  createdAt   DateTime @default(now())
+}
+
+enum Tone {
+  PROFESSIONAL
+  CASUAL
+  WITTY
+}
+
+enum Platform {
+  X
+  LINKEDIN
+}
+
+enum ContentType {
+  SHORT_POST
+  LONG_POST
+  ARTICLE
+  THREAD
+  IMAGE_CAPTION
+}
+
+enum ContentStatus {
+  PENDING
+  APPROVED
+  POSTED
+  REJECTED
+}
