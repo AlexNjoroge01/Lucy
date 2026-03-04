@@ -1,13 +1,14 @@
 import { Badge } from '@/components/ui/badge'
-import { 
-  Twitter, 
-  Linkedin, 
-  Music2, 
-  Newspaper, 
-  Instagram, 
-  Youtube, 
+import {
+  Twitter,
+  Linkedin,
+  Music2,
+  Newspaper,
+  Instagram,
+  Youtube,
   MessageCircle,
-  MessageSquare
+  MessageSquare,
+  Facebook,
 } from 'lucide-react'
 import type { Platform } from '@/types'
 
@@ -21,6 +22,11 @@ const platformConfig: Record<Platform, { label: string; icon: React.ReactNode; c
     label: 'LinkedIn',
     icon: <Linkedin className="h-3 w-3" />,
     color: 'bg-blue-600/10 text-blue-600',
+  },
+  FACEBOOK: {
+    label: 'Facebook',
+    icon: <Facebook className="h-3 w-3" />,
+    color: 'bg-blue-700/10 text-blue-700',
   },
   TIKTOK: {
     label: 'TikTok',

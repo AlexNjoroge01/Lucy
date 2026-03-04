@@ -75,7 +75,7 @@ export function ContentEditor({ id }: ContentEditorProps) {
       const result = await generateContent.mutateAsync({
         contentType: item.type as ContentType,
         platform: item.platform as Platform,
-        projectId: item.projectId,
+        projectId: item.projectId || undefined,
       })
       setValue('body', result.body)
       toast.success('Content regenerated')

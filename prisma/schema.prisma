@@ -18,6 +18,7 @@ model User {
   profile       Profile?
   projects      Project[]
   contentItems  ContentItem[]
+  schedules     Schedule[]
   sessions      Session[]
   accounts      Account[]
 }
@@ -59,7 +60,7 @@ model Profile {
   focusTopics    String[]
   avoidTopics    String[]
   postsPerDay    Int        @default(1)
-  generationTime String     @default("07:00") // Specific time like "13:00" for 1:00 PM or "15:00" for 3:00 PM
+  generationTime String     @default("07:00")
   timezone       String     @default("Africa/Nairobi")
   updatedAt      DateTime   @updatedAt
 
@@ -79,6 +80,7 @@ model Project {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   contentItems ContentItem[]
+  schedules    Schedule[]
 }
 
 model ContentItem {
@@ -88,7 +90,7 @@ model ContentItem {
   type          ContentType
   platform      Platform
   body          String
-  imageConcept  String?       // AI-generated suggestion for what image would work well
+  imageConcept  String?
   status        ContentStatus @default(PENDING)
   imageUrl      String?
   imagePublicId String?
@@ -101,9 +103,31 @@ model ContentItem {
   project Project? @relation(fields: [projectId], references: [id])
 }
 
+model Schedule {
+  id            String         @id @default(cuid())
+  userId        String
+  projectId     String
+  platforms     Platform[]     // Multiple platforms
+  contentTypes  ContentType[]  // Multiple content types
+  scheduledDates DateTime[]     // Multiple dates for the schedule
+  timeOfDay     String         @default("09:00") // Time in HH:MM format
+  status        ScheduleStatus @default(PENDING)
+  recurrence    RecurrenceType @default(NONE) // NONE, DAILY, WEEKLY, MONTHLY
+  createdAt     DateTime       @default(now())
+  executedDates DateTime[]     // Track which dates have been executed
+  lastExecutedAt DateTime?
+  error         String?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+}
+
 model GenerationLog {
   id          String   @id @default(cuid())
-  triggeredBy String   // "cron" | "manual"
+  triggeredBy String
   itemsCount  Int
   success     Boolean
   error       String?
@@ -119,6 +143,7 @@ enum Tone {
 enum Platform {
   X
   LINKEDIN
+  FACEBOOK
   TIKTOK
   MEDIUM
   INSTAGRAM
@@ -140,4 +165,19 @@ enum ContentStatus {
   APPROVED
   POSTED
   REJECTED
+}
+
+enum ScheduleStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum RecurrenceType {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
 }

@@ -98,7 +98,6 @@ export async function generateContent(
   // 5. Call Groq API via AI SDK
   const { text } = await generateText({
     model: groqModel,
-    maxTokens: 1000,
     messages: [
       { role: 'system', content: prompt.system },
       { role: 'user', content: prompt.user },
@@ -119,9 +118,6 @@ export async function generateContent(
       imageConcept,
       status: 'PENDING',
     },
-    include: {
-      project: true,
-    },
   })
 
   return {
@@ -138,16 +134,6 @@ export async function generateContent(
     generatedAt: contentItem.generatedAt.toISOString(),
     approvedAt: contentItem.approvedAt?.toISOString(),
     postedAt: contentItem.postedAt?.toISOString(),
-    project: contentItem.project
-      ? {
-          id: contentItem.project.id,
-          userId: contentItem.project.userId,
-          name: contentItem.project.name,
-          description: contentItem.project.description,
-          url: contentItem.project.url ?? undefined,
-          techStack: contentItem.project.techStack,
-          status: contentItem.project.status,
-        }
-      : undefined,
+    project: selectedProject,
   }
 }

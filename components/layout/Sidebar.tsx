@@ -10,11 +10,13 @@ import {
   User,
   BarChart3,
   Settings,
+  Calendar,
 } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Content Queue', href: '/queue', icon: FileText },
+  { name: 'Schedules', href: '/schedules', icon: Calendar },
   { name: 'Projects', href: '/projects', icon: FolderKanban },
   { name: 'Profile', href: '/profile', icon: User },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },

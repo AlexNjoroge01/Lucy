@@ -86,7 +86,7 @@ declare module 'next-auth' {
   }
 }
 
-declare module 'next-auth/jwt' {
+declare module 'next-auth' {
   interface JWT {
     id: string
   }
