@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useSchedules, useDeleteSchedule } from '@/hooks/useSchedules'
+import { useSchedules, useDeleteSchedule, useExecuteSchedules } from '@/hooks/useSchedules'
 import { ScheduleForm } from '@/components/schedules/ScheduleForm'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PlatformBadge } from '@/components/shared/PlatformBadge'
-import { Plus, Loader2, Trash2, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Loader2, Trash2, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { Schedule, ScheduleStatus } from '@/types'
@@ -287,8 +287,39 @@ function CalendarView({ schedules }: { schedules: Schedule[] }) {
 export default function SchedulesPage() {
   const { data: schedules, isLoading } = useSchedules()
   const deleteSchedule = useDeleteSchedule()
+  const executeSchedules = useExecuteSchedules()
   const [formOpen, setFormOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+
+  // Auto-check for due schedules on page load
+  useEffect(() => {
+    const checkDueSchedules = async () => {
+      const now = new Date()
+      const hasDueSchedules = schedules?.some((s) => {
+        if (s.status !== 'PENDING' && s.status !== 'ACTIVE') return false
+        const scheduledDate = s.scheduledDates.find((date) => {
+          const d = new Date(date)
+          return d.getFullYear() === now.getFullYear() &&
+                 d.getMonth() === now.getMonth() &&
+                 d.getDate() === now.getDate()
+        })
+        return scheduledDate
+      })
+      
+      if (hasDueSchedules) {
+        toast.info('You have schedules due today', {
+          action: {
+            label: 'Execute Now',
+            onClick: handleExecute,
+          },
+        })
+      }
+    }
+    
+    if (schedules) {
+      checkDueSchedules()
+    }
+  }, [schedules])
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to cancel this schedule?')) {
@@ -298,6 +329,19 @@ export default function SchedulesPage() {
       } catch {
         toast.error('Failed to cancel schedule')
       }
+    }
+  }
+
+  const handleExecute = async () => {
+    try {
+      const result = await executeSchedules.mutateAsync()
+      if (result.totalGenerated > 0) {
+        toast.success(`Generated ${result.totalGenerated} content items from ${result.successful} schedules`)
+      } else {
+        toast.info('No schedules are due for execution')
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to execute schedules')
     }
   }
 
@@ -324,7 +368,20 @@ export default function SchedulesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex bg-muted rounded-lg p-1 mr-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExecute}
+            disabled={executeSchedules.isPending}
+          >
+            {executeSchedules.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Play className="h-4 w-4 mr-2" />
+            )}
+            Run Now
+          </Button>
+          <div className="flex bg-muted rounded-lg p-1 mx-2">
             <Button
               variant={viewMode === 'list' ? 'secondary' : 'ghost'}
               size="sm"

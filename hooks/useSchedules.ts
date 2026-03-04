@@ -12,6 +12,20 @@ interface CreateScheduleData {
   recurrence: RecurrenceType
 }
 
+interface ExecuteResult {
+  executed: number
+  successful: number
+  failed: number
+  totalGenerated: number
+  results: Array<{
+    scheduleId: string
+    success: boolean
+    generatedCount?: number
+    items?: Array<{ platform: string; contentType: string; itemId: string }>
+    error?: string
+  }>
+}
+
 async function fetchSchedules(status?: ScheduleStatus): Promise<Schedule[]> {
   const url = status ? `/api/schedules?status=${status}` : '/api/schedules'
   const res = await fetch(url)
@@ -40,6 +54,18 @@ async function deleteSchedule(id: string): Promise<{ success: boolean }> {
   return res.json()
 }
 
+async function executeSchedules(): Promise<ExecuteResult> {
+  const res = await fetch('/api/schedules/execute', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  })
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(error.message || 'Failed to execute schedules')
+  }
+  return res.json()
+}
+
 export function useSchedules(status?: ScheduleStatus) {
   return useQuery({
     queryKey: ['schedules', status],
@@ -65,6 +91,18 @@ export function useDeleteSchedule() {
     mutationFn: deleteSchedule,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['schedules'] })
+    },
+  })
+}
+
+export function useExecuteSchedules() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: executeSchedules,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['schedules'] })
+      queryClient.invalidateQueries({ queryKey: ['content'] })
     },
   })
 }

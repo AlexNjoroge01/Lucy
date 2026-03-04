@@ -1,33 +1,41 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateContent } from '@/lib/content-generator'
 import type { Platform, ContentType } from '@/types'
 
 const CRON_SECRET = process.env.CRON_SECRET
 
-// GET /api/schedules/execute - Execute pending schedules
-export async function GET(request: Request) {
+// POST /api/schedules/execute - Execute pending schedules (called by user or cron)
+export async function POST(request: Request) {
   try {
+    // Check authorization - either cron secret or authenticated user
     const authHeader = request.headers.get('authorization')
-    const { searchParams } = new URL(request.url)
-    const manualTrigger = searchParams.get('manual')
-
-    const isAuthorized =
-      authHeader === `Bearer ${CRON_SECRET}` ||
-      (manualTrigger === 'true' && authHeader === `Bearer ${CRON_SECRET}`)
-
-    if (!isAuthorized) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    const isCronAuthorized = authHeader === `Bearer ${CRON_SECRET}`
+    
+    // If not cron, check for authenticated user
+    let userId: string | null = null
+    if (!isCronAuthorized) {
+      const session = await auth()
+      if (!session?.user?.id) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      }
+      userId = session.user.id
     }
 
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-    // Find all active/pending schedules
+    // Find all active/pending schedules (optionally filtered by user)
+    const where: { status: { in: string[] }; userId?: string } = {
+      status: { in: ['PENDING', 'ACTIVE'] },
+    }
+    if (userId) {
+      where.userId = userId
+    }
+
     const schedules = await prisma.schedule.findMany({
-      where: {
-        status: { in: ['PENDING', 'ACTIVE'] },
-      },
+      where,
       include: {
         project: true,
       },
@@ -129,7 +137,7 @@ export async function GET(request: Request) {
     
     await prisma.generationLog.create({
       data: {
-        triggeredBy: manualTrigger === 'true' ? 'manual' : 'schedule',
+        triggeredBy: userId ? 'manual' : 'cron',
         itemsCount: totalGenerated,
         success: successful > 0,
         error: successful === 0 && results.length > 0 ? 'All schedules failed' : null,
