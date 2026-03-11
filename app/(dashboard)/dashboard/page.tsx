@@ -131,24 +131,22 @@ export default function DashboardPage() {
       return
     }
 
-    try {
-      // Generate content for each combination of type and platform
-      const promises: Promise<void>[] = []
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+    try {
+      // Generate content for each combination of type and platform, with a delay to avoid LLM rate limits
       for (const type of selectedTypes) {
         for (const platform of selectedPlatforms) {
-          promises.push(
-            generateContent.mutateAsync({
-              contentType: type,
-              platform: platform,
-              projectId: selectedProjectId || undefined,
-            }).then(() => {})
-          )
+          await generateContent.mutateAsync({
+            contentType: type,
+            platform,
+            projectId: selectedProjectId || undefined,
+          })
+          // Small delay between requests to stay under Groq TPM limits
+          await delay(1500)
         }
       }
 
-      await Promise.all(promises)
-      
       const totalItems = selectedTypes.length * selectedPlatforms.length
       toast.success(`Generated ${totalItems} content item${totalItems > 1 ? 's' : ''} successfully`)
       setGenerateDialogOpen(false)
