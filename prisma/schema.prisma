@@ -7,13 +7,17 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String     @id @default(cuid())
+  email         String     @unique
   name          String?
   password      String?
   emailVerified DateTime?
   image         String?
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @default(now()) @updatedAt
+
+  // Roles
+  roles         UserRole[]
 
   profile       Profile?
   projects      Project[]
@@ -21,6 +25,7 @@ model User {
   schedules     Schedule[]
   sessions      Session[]
   accounts      Account[]
+  auditLogs     AuditLog[] // Logs created by this user
 }
 
 model Account {
@@ -132,6 +137,52 @@ model GenerationLog {
   success     Boolean
   error       String?
   createdAt   DateTime @default(now())
+}
+
+// Admin & RBAC Models
+model Role {
+  id          String       @id @default(cuid())
+  name        String       @unique // ADMIN, USER, MODERATOR, etc.
+  description String?
+  permissions String[]     // Array of permission strings
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  users       UserRole[]
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  assignedAt DateTime @default(now())
+  assignedBy String?  // User who assigned this role
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+// Audit Log for tracking admin actions
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
+  entity      String   // User, ContentItem, Project, etc.
+  entityId    String?  // ID of affected entity
+  details     String?  // JSON string with additional details
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
 }
 
 enum Tone {

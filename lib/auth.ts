@@ -3,6 +3,15 @@ import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
 
+// Helper function to get user roles
+async function getUserRoles(userId: string) {
+  const userRoles = await prisma.userRole.findMany({
+    where: { userId },
+    include: { role: true },
+  })
+  return userRoles.map((ur) => ur.role.name)
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   session: {
@@ -48,10 +57,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
 
+        // Get user roles
+        const roles = await getUserRoles(user.id)
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
+          roles,
         }
       },
     }),
@@ -60,12 +73,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.roles = user.roles || []
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.roles = (token.roles as string[]) || []
       }
       return session
     },
@@ -76,18 +91,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 })
 
 declare module 'next-auth' {
+  interface User {
+    roles: string[]
+  }
+
   interface Session {
     user: {
       id: string
       email: string
       name?: string | null
       image?: string | null
+      roles: string[]
     }
-  }
-}
-
-declare module 'next-auth' {
-  interface JWT {
-    id: string
   }
 }

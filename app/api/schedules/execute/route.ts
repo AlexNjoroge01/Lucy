@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { ScheduleStatus, type Prisma } from '@prisma/client'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateContent } from '@/lib/content-generator'
@@ -27,8 +28,8 @@ export async function POST(request: Request) {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
     // Find all active/pending schedules (optionally filtered by user)
-    const where: { status: { in: string[] }; userId?: string } = {
-      status: { in: ['PENDING', 'ACTIVE'] },
+    const where: Prisma.ScheduleWhereInput = {
+      status: { in: [ScheduleStatus.PENDING, ScheduleStatus.ACTIVE] },
     }
     if (userId) {
       where.userId = userId

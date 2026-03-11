@@ -28,6 +28,7 @@ const platformContexts: Record<Platform, string> = {
   X: 'This is for X (Twitter). Keep it concise, punchy, and engaging. Character limit: 280 for single posts.',
   LINKEDIN:
     'This is for LinkedIn. Professional but personable. Longer form content works well. Engage with professional insights.',
+  FACEBOOK: 'This is for Facebook. Engaging, shareable content that sparks conversation and community interaction.',
   TIKTOK: 'This is for TikTok. Short, engaging, and trend-aware content.',
   MEDIUM: 'This is for Medium. Long-form, in-depth content with clear structure.',
   INSTAGRAM: 'This is for Instagram. Visual-first with engaging captions.',

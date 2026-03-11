@@ -5,6 +5,112 @@ export type Tone = 'PROFESSIONAL' | 'CASUAL' | 'WITTY'
 export type ScheduleStatus = 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
 export type RecurrenceType = 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY'
 
+// Admin & RBAC Types
+export type UserRole = 'ADMIN' | 'USER' | 'MODERATOR'
+
+export interface Role {
+  id: string
+  name: UserRole
+  description?: string | null
+  permissions: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UserWithRoles {
+  id: string
+  email: string
+  name?: string | null
+  image?: string | null
+  createdAt: string
+  updatedAt: string
+  roles: Role[]
+  _count?: {
+    contentItems: number
+    projects: number
+    schedules: number
+  }
+}
+
+export interface AuditLog {
+  id: string
+  userId?: string | null
+  action: string
+  entity: string
+  entityId?: string | null
+  details?: string | null
+  ipAddress?: string | null
+  userAgent?: string | null
+  createdAt: string
+  user?: {
+    id: string
+    email: string
+    name?: string | null
+  } | null
+}
+
+export interface AdminMetrics {
+  // User metrics
+  totalUsers: number
+  newUsersToday: number
+  newUsersThisWeek: number
+  newUsersThisMonth: number
+  activeUsersToday: number
+
+  // Content metrics
+  totalContent: number
+  contentByStatus: {
+    PENDING: number
+    APPROVED: number
+    POSTED: number
+    REJECTED: number
+  }
+  contentByPlatform: Record<Platform, number>
+  contentCreatedToday: number
+  contentCreatedThisWeek: number
+  contentCreatedThisMonth: number
+
+  // Project metrics
+  totalProjects: number
+  activeProjects: number
+  projectsCreatedThisMonth: number
+
+  // Schedule metrics
+  totalSchedules: number
+  schedulesByStatus: {
+    PENDING: number
+    ACTIVE: number
+    COMPLETED: number
+    FAILED: number
+    CANCELLED: number
+  }
+
+  // System metrics
+  totalAuditLogs: number
+  auditLogsToday: number
+  lastCronRun?: string | null
+}
+
+export interface TimeSeriesData {
+  date: string
+  users: number
+  content: number
+  projects: number
+}
+
+export interface RecentActivity {
+  id: string
+  action: string
+  entity: string
+  description: string
+  user: {
+    id: string
+    email: string
+    name?: string | null
+  } | null
+  timestamp: string
+}
+
 export interface ContentItem {
   id: string
   userId: string

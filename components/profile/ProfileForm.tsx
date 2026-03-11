@@ -190,6 +190,7 @@ export function ProfileForm() {
           {([
             { value: 'X', label: 'X (Twitter)' },
             { value: 'LINKEDIN', label: 'LinkedIn' },
+            { value: 'FACEBOOK', label: 'Facebook' },
             { value: 'TIKTOK', label: 'TikTok' },
             { value: 'MEDIUM', label: 'Medium' },
             { value: 'INSTAGRAM', label: 'Instagram' },

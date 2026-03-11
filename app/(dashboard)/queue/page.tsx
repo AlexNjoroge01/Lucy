@@ -28,6 +28,7 @@ const contentTypes: { value: ContentType; label: string }[] = [
 const platforms: { value: Platform; label: string }[] = [
   { value: 'X', label: 'X (Twitter)' },
   { value: 'LINKEDIN', label: 'LinkedIn' },
+  { value: 'FACEBOOK', label: 'Facebook' },
   { value: 'TIKTOK', label: 'TikTok' },
   { value: 'MEDIUM', label: 'Medium' },
   { value: 'INSTAGRAM', label: 'Instagram' },
@@ -125,7 +126,7 @@ export default function QueuePage() {
       <ContentList />
 
       <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Generate New Content</DialogTitle>
           </DialogHeader>

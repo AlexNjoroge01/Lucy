@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -11,6 +12,7 @@ import {
   BarChart3,
   Settings,
   Calendar,
+  Shield,
 } from 'lucide-react'
 
 const navigation = [
@@ -24,6 +26,8 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const isAdmin = session?.user?.roles?.includes('ADMIN')
 
   return (
     <div className="flex h-full w-64 flex-col bg-card border-r">
@@ -52,6 +56,20 @@ export function Sidebar() {
             </Link>
           )
         })}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className={cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+              pathname === '/admin' || pathname.startsWith('/admin/')
+                ? 'bg-destructive text-destructive-foreground'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            )}
+          >
+            <Shield className="h-5 w-5" />
+            Admin
+          </Link>
+        )}
       </nav>
       <div className="border-t p-3">
         <Link

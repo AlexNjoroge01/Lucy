@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // This function can be marked `async` if using `await` inside
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Get the session token from cookies
@@ -16,9 +16,10 @@ export function proxy(request: NextRequest) {
   const isLoggedIn = !!sessionToken
   const isAuthPage = pathname.startsWith('/login')
   const isApiAuthRoute = pathname.startsWith('/api/auth')
+  const isApiRegisterRoute = pathname === '/api/register'
 
-  // Allow auth API routes
-  if (isApiAuthRoute) {
+  // Allow auth API routes and registration
+  if (isApiAuthRoute || isApiRegisterRoute) {
     return NextResponse.next()
   }
 
@@ -39,12 +40,21 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/editor') ||
     pathname.startsWith('/profile') ||
     pathname.startsWith('/projects') ||
-    pathname.startsWith('/analytics')
+    pathname.startsWith('/analytics') ||
+    pathname.startsWith('/schedules')
+
+  // Admin routes (requires authentication)
+  const isAdminRoute =
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/api/admin')
 
   // If accessing protected route without being logged in, redirect to login
-  if (isProtectedRoute && !isLoggedIn) {
+  if ((isProtectedRoute || isAdminRoute) && !isLoggedIn) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
+
+  // Note: Admin role verification is handled in the API routes and page components
+  // due to Edge Runtime limitations for database access
 
   return NextResponse.next()
 }
@@ -58,5 +68,8 @@ export const config = {
     '/profile/:path*',
     '/projects/:path*',
     '/analytics/:path*',
+    '/schedules/:path*',
+    '/admin/:path*',
+    '/api/admin/:path*',
   ],
 }

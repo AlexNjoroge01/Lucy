@@ -98,7 +98,7 @@ export function ProjectForm({ open, onClose, project }: ProjectFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {project ? 'Edit Project' : 'Add New Project'}
