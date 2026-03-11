@@ -22,13 +22,11 @@ export default function ProjectsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this project?')) {
-      try {
-        await deleteProject.mutateAsync(id)
-        toast.success('Project deleted successfully')
-      } catch {
-        toast.error('Failed to delete project')
-      }
+    try {
+      await deleteProject.mutateAsync(id)
+      toast.success('Project deleted successfully')
+    } catch {
+      toast.error('Failed to delete project')
     }
   }
 
