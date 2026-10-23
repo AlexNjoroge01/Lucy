@@ -26,15 +26,23 @@ The admin system provides comprehensive system oversight with:
 
 ## Admin User Credentials
 
-The admin user has been pre-seeded with the following credentials:
+When you run the seed script, it creates an admin account. Set the credentials yourself before seeding — either via environment variables or by editing the fallback values in `prisma/seed.ts`:
+
+```env
+# .env
+ADMIN_EMAIL="you@yourdomain.com"
+ADMIN_PASSWORD="a-strong-password-of-your-choice"
+```
+
+If neither is set, the seed falls back to `admin@example.com` / `ChangeMe123!` for local testing only.
 
 ```
-Email:    alexnjoroge102@gmail.com
-Password: Titan@123
+Email:    your email (ADMIN_EMAIL)
+Password: your password (ADMIN_PASSWORD)
 Role:     ADMIN
 ```
 
-⚠️ **IMPORTANT**: Change the default password after first login!
+⚠️ **IMPORTANT**: Never commit real credentials to git, and change the password after first login!
 
 ---
 

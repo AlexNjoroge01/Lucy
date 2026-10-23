@@ -17,9 +17,12 @@ async function main() {
   console.log('🌱 Starting database seed...')
 
   // Admin credentials
-  const adminEmail = 'alexnjoroge102@gmail.com'
-  const adminPassword = 'Titan@123'
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
+  const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMe123!'
   const adminName = 'Admin User'
+
+  // ⚠️ Override credentials via ADMIN_EMAIL / ADMIN_PASSWORD env vars,
+  // or edit the fallbacks above. NEVER commit real credentials to git.
 
   // 1. Create or update the ADMIN role with full permissions
   const adminRole = await prisma.role.upsert({
